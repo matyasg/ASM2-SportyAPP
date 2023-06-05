@@ -43,22 +43,15 @@ import java.util.concurrent.Flow;
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
     // Defining TextViews to show values of probabilities for each activity
     private TextView walkTV;
-//    private TextView walkupTV;
-//    private TextView walkdownTV;
     private TextView sitTV;
     private TextView standTV;
-//    private TextView layTV;
     // Defining TableRows for each activity
     private TableRow walkTR;
-//    private TableRow walkupTR;
-//    private TableRow walkdownTR;
     private TableRow sitTR;
     private TableRow standTR;
-//    private TableRow layTR;
     // Defining the ImageView to set an image with the activity
     private ImageView activityIV;
     // Defining Lists to keep all signals from sensors
-    private static List<Float> tacc_x, tacc_y, tacc_z; // total acc.
     private static List<Float> bacc_x, bacc_y, bacc_z; // body component of acc.
     private static List<Float> gyr_x, gyr_y, gyr_z; // gyr. signal
     private static List<Float> all_data; // list for keeping all signals
@@ -84,22 +77,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         Button exit_button = (Button) findViewById(R.id.button_exit);
         // Initializing TextViews with id
         walkTV = (TextView) findViewById(R.id.prob_walk);
-//        walkupTV = (TextView) findViewById(R.id.prob_walkup);
-//        walkdownTV = (TextView) findViewById(R.id.prob_walkdown);
         sitTV = (TextView) findViewById(R.id.prob_sit);
         standTV = (TextView) findViewById(R.id.prob_stand);
-//        layTV = (TextView) findViewById(R.id.prob_lay);
         // Initializing TableRows with id
         walkTR = (TableRow) findViewById(R.id.row_walk);
-//        walkupTR = (TableRow) findViewById(R.id.row_walkup);
-//        walkdownTR = (TableRow) findViewById(R.id.row_walkdown);
         sitTR = (TableRow) findViewById(R.id.row_sit);
         standTR = (TableRow) findViewById(R.id.row_stand);
-//        layTR = (TableRow) findViewById(R.id.row_lay);
         // Initializing the ImageView with id
         activityIV = (ImageView) findViewById(R.id.act_img);
         // Initializing Lists
-        tacc_x = new ArrayList<>(); tacc_y = new ArrayList<>(); tacc_z = new ArrayList<>();
         bacc_x = new ArrayList<>(); bacc_y = new ArrayList<>(); bacc_z = new ArrayList<>();
         gyr_x = new ArrayList<>(); gyr_y = new ArrayList<>(); gyr_z = new ArrayList<>();
         all_data = new ArrayList<>();
@@ -155,10 +141,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             filt_acc[0] = ConstValues.ALPHA_1 * filt_acc[0] + (1 - ConstValues.ALPHA_1) * event.values[0]/10;
             filt_acc[1] = ConstValues.ALPHA_1 * filt_acc[1] + (1 - ConstValues.ALPHA_1) * event.values[1]/10;
             filt_acc[2] = ConstValues.ALPHA_1 * filt_acc[2] + (1 - ConstValues.ALPHA_1) * event.values[2]/10;
-            // Total acc. signals
-            tacc_x.add(filt_acc[0]);
-            tacc_y.add(filt_acc[1]);
-            tacc_z.add(filt_acc[2]);
+
             // Using low-pass filter to separate gravity from the total acc. signals
             gravity[0] = ConstValues.ALPHA_2 * gravity[0] + (1 - ConstValues.ALPHA_2) * filt_acc[0];
             gravity[1] = ConstValues.ALPHA_2 * gravity[1] + (1 - ConstValues.ALPHA_2) * filt_acc[1];
@@ -179,16 +162,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             gyr_y.add(filt_gyr[1]);
             gyr_z.add(filt_gyr[2]);
         }
-        // Using the signals window in size 128
-        if (bacc_x.size() >= ConstValues.NUM_SAMPLES && bacc_y.size() >= ConstValues.NUM_SAMPLES && bacc_z.size() >= ConstValues.NUM_SAMPLES
-                && tacc_x.size() >= ConstValues.NUM_SAMPLES && tacc_y.size() >= ConstValues.NUM_SAMPLES && tacc_z.size() >= ConstValues.NUM_SAMPLES &&
+        // Using the signals window in size 64
+        if (bacc_x.size() >= ConstValues.NUM_SAMPLES && bacc_y.size() >= ConstValues.NUM_SAMPLES && bacc_z.size() >= ConstValues.NUM_SAMPLES &&
                 gyr_x.size() >= ConstValues.NUM_SAMPLES && gyr_y.size() >= ConstValues.NUM_SAMPLES && gyr_z.size() >= ConstValues.NUM_SAMPLES) {
-            // Signals normalisation
-//            normalisation();
+
             // Putting values into all_data
-//            all_data.addAll(tacc_x.subList(0,128));
-//            all_data.addAll(tacc_y.subList(0,128));
-//            all_data.addAll(tacc_z.subList(0,128));
             all_data.addAll(bacc_x.subList(0,ConstValues.NUM_SAMPLES));
             all_data.addAll(bacc_y.subList(0,ConstValues.NUM_SAMPLES));
             all_data.addAll(bacc_z.subList(0,ConstValues.NUM_SAMPLES));
@@ -236,22 +214,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         long declaredLength = fileDescriptor.getDeclaredLength();
         return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength);
     }
-    // Function to normalise values from SignalProcessing.ipynb
-    private void normalisation()
-    {
-        for(int i = 0; i < ConstValues.NUM_SAMPLES; i++)
-        {
-            tacc_x.set(i,(2*( (tacc_x.get(i) - ConstValues.min_tacc_x)/(ConstValues.max_tacc_x-ConstValues.min_tacc_x))-1));
-            tacc_y.set(i,(2*( (tacc_y.get(i) - ConstValues.min_tacc_y)/(ConstValues.max_tacc_y-ConstValues.min_tacc_y))-1));
-            tacc_z.set(i,(2*( (tacc_z.get(i) - ConstValues.min_tacc_z)/(ConstValues.max_tacc_z-ConstValues.min_tacc_z))-1));
-            bacc_x.set(i,(2*( (bacc_x.get(i) - ConstValues.min_bacc_x)/(ConstValues.max_bacc_x-ConstValues.min_bacc_x))-1));
-            bacc_y.set(i,(2*( (bacc_y.get(i) - ConstValues.min_bacc_y)/(ConstValues.max_bacc_y-ConstValues.min_bacc_y))-1));
-            bacc_z.set(i,(2*( (bacc_z.get(i) - ConstValues.min_bacc_z)/(ConstValues.max_bacc_z-ConstValues.min_bacc_z))-1));
-            gyr_x.set(i,(2*( (gyr_x.get(i) - ConstValues.min_gyr_x)/(ConstValues.max_gyr_x-ConstValues.min_gyr_x))-1));
-            gyr_y.set(i,(2*( (gyr_y.get(i) - ConstValues.min_gyr_y)/(ConstValues.max_gyr_y-ConstValues.min_gyr_y))-1));
-            gyr_z.set(i,(2*( (gyr_z.get(i) - ConstValues.min_gyr_z)/(ConstValues.max_gyr_z-ConstValues.min_gyr_z))-1));
-        }
-    }
     // Function to convert all_data to the 2D Float list (128, 9)
     private float[][] sizeConversion(List<Float> all_data) {
         float[][] two_dim_list = new float[ConstValues.NUM_SAMPLES][ConstValues.NUM_INPUT];
@@ -265,12 +227,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
     // Function to set values of probabilities in TextViews
     private void propabilities(float[][] results){
-//        walkupTV.setText(String.format("%.02f", results[0][1]));
-//        walkdownTV.setText(String.format("%.02f", results[0][2]));
         sitTV.setText(String.format("%.02f", results[0][0]));
         standTV.setText(String.format("%.02f", results[0][1]));
         walkTV.setText(String.format("%.02f", results[0][2]));
-//        layTV.setText(String.format("%.02f", results[0][5]));
     }
     // Function to set the image with the most likely activity into ImageView
     private void setActivity(float[][] results){
@@ -284,18 +243,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
         // Setting the default background color for TextViews
         walkTR.setBackgroundColor(Color.rgb(243,249,249));
-//        walkupTR.setBackgroundColor(Color.rgb(243,249,249));
-//        walkdownTR.setBackgroundColor(Color.rgb(243,249,249));
         sitTR.setBackgroundColor(Color.rgb(243,249,249));
         standTR.setBackgroundColor(Color.rgb(243,249,249));
-//        layTR.setBackgroundColor(Color.rgb(243,249,249));
         // Setting the yellow background color to the most likely activity
-//        if(index==1){
-//            activityIV.setImageResource(R.drawable.walkingup);
-//            walkupTR.setBackgroundColor(Color.rgb(247,255,147));}
-//        if(index==2){
-//            activityIV.setImageResource(R.drawable.walkingdown);
-//            walkdownTR.setBackgroundColor(Color.rgb(247,255,147));}
         if(index==0){
             sittingTimes++;
             activityIV.setImageResource(R.drawable.sitting);
@@ -308,11 +258,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             walkingTimes++;
             activityIV.setImageResource(R.drawable.walking);
             walkTR.setBackgroundColor(Color.rgb(247,255,147));
-
         }
-//        if(index==5){
-//            activityIV.setImageResource(R.drawable.laying);
-//            layTR.setBackgroundColor(Color.rgb(247,255,147));}
     }
 
     private float checkWalkRate(){
@@ -325,8 +271,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 .setContentTitle("Let's walk!")
                 .setContentText("We are taking care of your health, let's walk for a few minutes!")
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                // Set the intent that will fire when the user taps the notification
-//                    .setContentIntent(pendingIntent)
                 .setAutoCancel(true);
 
         long[] pattern = {500,500,500,500,500,500,500,500,500};
@@ -354,7 +298,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
     // Function to clear Lists with data from sensors to make a new window with samples
     private void clearData(){
-        tacc_x.clear(); tacc_y.clear(); tacc_z.clear();
         bacc_x.clear(); bacc_y.clear(); bacc_z.clear();
         gyr_x.clear(); gyr_y.clear(); gyr_z.clear();
         all_data.clear();
